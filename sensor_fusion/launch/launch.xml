@@ -1,0 +1,11 @@
+<launch>
+    <node pkg="sensor_fusion" type="sensor_fusion.py" name="sensor_fusion" />
+    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock $(find sensor_fusion)/test_data/2018-01-26-19-18-09.bag"/>
+    <arg name="map_file" default="$(find sensor_fusion)/test_data/office_corridor.yaml"/>
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" >
+            <param name="frame_id" value="/map"/>
+              </node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find sensor_fusion)/rviz/disp.rviz"
+  output="screen" />
+</launch>
