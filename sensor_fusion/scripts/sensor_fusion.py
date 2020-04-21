@@ -35,7 +35,7 @@ class sensor_fusion:
         self.initial_pose = initial_pose
         self.numParticles = N
 
-    
+    # subscribes to odometry data
     def subscribe_odom(self,msg):
         rospy.loginfo("Odom Info Recieved")
         pose = msg.pose.pose
@@ -82,6 +82,8 @@ class sensor_fusion:
         self.amclcov = [[cov[0],cov[1],0],[cov[6],cov[7],0],[0, 0,cov[35]]]
         self.isamclUpdate = True;
 
+
+    # the particle filter is initialised and executed here
     def pf(self):
         
         particles,weights = self.create_gaussian_particles(self.initial_pose,[1,1,0.1],self.numParticles)
@@ -135,7 +137,7 @@ class sensor_fusion:
 
             rate.sleep();
             
-    
+    # prediction set of the particles with noise addition
     def predict(self,particles,control,covariance,dt):
         particles[:, 2] += (control[1] + (npr.randn(self.numParticles) * covariance[1]))*dt
         particles[:, 2] %= 2 * np.pi
@@ -145,6 +147,7 @@ class sensor_fusion:
         particles[:, 1] += np.sin(particles[:, 2]) * ux
         #rospy.loginfo(np.array2string(particles))
 
+     # creates a set of particles sampled from a gaussian posterior
     def create_gaussian_particles(self,mean,std,N):
         particles = np.empty((N, 3))
         particles[:, 0] = mean[0] + (npr.randn(N) * math.sqrt(std[0]))
@@ -163,11 +166,13 @@ class sensor_fusion:
 
         return particles,weights
 
+    # obtains the gaussian posterior for updating the weights
     def getGaussProb(self,distance,std):
         d = np.dot(std,distance.T)
         d2 = np.dot(distance,d.T)
         return math.exp(-0.5*d2)
   
+     # weights are updated here and sensor information is fused here
     def update(self,particles,weights):
         rospy.loginfo("Weights:")
         #Fuse Odometry Pose
@@ -203,6 +208,7 @@ class sensor_fusion:
         #rospy.loginfo("Weight Sum: %d",sum(weights))
         weights /= sum(weights)
 
+    # estimates mean and variance of the new pose of the robot based on updates on particles
     def estimate(self,particles, weights):
         rospy.loginfo("Weight Sum: %lf",sum(weights))
         d = np.copy(particles)
@@ -226,9 +232,11 @@ class sensor_fusion:
         rospy.loginfo("Var 2c %s",np.array2string(var))    
         return mean, var
 
+    # number of effectie particels contributing to the weighted sum
     def neff(self,weights):
         return 1. / np.sum(np.square(weights))
-
+    
+    # resampling particles
     def resample(self,particles, weights, indexes):
         particles[:] = particles[indexes]
         weights[:] = weights[indexes]
@@ -248,6 +256,7 @@ class sensor_fusion:
                 j += 1
          return indexes
 
+#initialising and executing particle filter
 rospy.init_node('sensor_fusion')
 s = sensor_fusion([1.0,0.2,0],1000)
 s.pf();
