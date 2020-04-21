@@ -22,3 +22,4 @@ The image pipeline is described as follows:
 7) The moment of each bounding rectangle is analysed. Since legs correspond
    to rectangles with small width and large heights, moments of rectangles greater than 0.2 are 
    filtered out. 
+8) Coordinates of chair legs can be found by subcribing to /racks_pose topic
