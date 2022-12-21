@@ -1,4 +1,12 @@
-# tests
+# Rack detection and sensor fusion project
+
+##Introduction
+
+Preliminary project to get my hands dirty with sensor fusion and computer vision. The project empoys a mobile robot that detects racks via segmentation and uses odometry and imu data to localize with a particle filter.
+
+
+
+## Usage
 To run rack_detection
 
 1. Clone "tests" repository
